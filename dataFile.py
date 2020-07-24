@@ -22,8 +22,7 @@ class dataFile():
         self._parseData()
 
     def _parseData(self):
-        http = urllib3.PoolManager()
-        r = http.request('GET', self.fileUrl)
+        r = urllib3.PoolManager().request('GET', self.fileUrl)
         self.dataRaw = r.data.decode("utf-8")
         self._generateDataFrames()
         
@@ -75,7 +74,7 @@ class dataFile():
                 dataFrame.index.name = index
                 dataFrame.rename(columns=titlesDict, inplace=True)
                 pass
-        print(self.dataFrames[0][:10])
+        #print(self.dataFrames[0][:10])
         
 
 
