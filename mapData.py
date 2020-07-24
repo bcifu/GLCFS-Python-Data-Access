@@ -6,6 +6,8 @@ import os
 import io
 import math
 
+#Note, the I, J for square columns are 1-indexed
+
 class Lake(Enum):
     """An Enum for each lake's file location
 
@@ -34,6 +36,8 @@ class MapData():
     def decodeCoords(self, lat, lon):
         '''Using the data frame for this object, uses the latitude and longitude to decode the square sequence number, column and row to be used in other classes.     
 
+        Returns the series for the correct row in the data table
+
         Lat and lon are forced to positive because that is how the data is stored :/ 
 
         Args:
@@ -41,23 +45,42 @@ class MapData():
             int ([type]): [description]
             int ([type]): [description]
         '''
-        lat = abs(round(lat, 5))
-        lon = abs(round(lon, 5))
+        lat = abs(lat)
+        lon = abs(lon)
 
         dist = math.inf
         seq = 1
-        #weird issue with off by one offset in i and j
-        for row in self.data.iterrows():
-            # if int(row[1]['Row']) in [9, 10, 11] and int(row[1]['Col']) in [17, 18]:
-            #     print("here")
 
-            val = round(math.sqrt(((row[1]['Lat'] - lat) ** 2) + ((row[1]['Lon'] - lon) ** 2)), 5)
+        for row in self.data.iterrows():
+            val = ((row[1]['Lat'] - lat) ** 2) + ((row[1]['Lon'] - lon) ** 2) #These numbers may look off if you are looking at a map to try to match them up, that is because this numbering is using FORTRAN numbering which is 1 indexed            
             if val < dist:
                 dist = val
                 seq = row[0]
-        print(self.data.loc[seq])
+        return(self.data.loc[seq])
             
+    @staticmethod
+    def RowToSequenceNum(r: pd.Series):
+        '''Extract the sequence number from a row returned from decoding coordinates
 
+        Args:
+            r (pd.Series): The series from the table to extract the row from
+
+        Returns:
+            [int]: The sequence number, can be used in other things
+        '''
+        return r.name
+
+    @staticmethod
+    def RowToIJ(r: pd.Series) -> tuple:
+        '''Extract the col and row numbers from a row returned from decoding coordinates
+
+        Args:
+            r (pd.Series): The series from the table to extract the row and cols from
+
+        Returns:
+            [tuple]: A two value tuple with the column (I) in the first spot and the row (J) in the second, fortran 1-indexed numbering
+        '''
+        return (r["Col"], r["Row"])
 
     @staticmethod
     def CreateAllMaps():
@@ -95,10 +118,11 @@ class MapData():
 
 if __name__ == "__main__":
     # MapData.CreateAllMaps()
-    # mi = MapData(Lake.MICHIGAN)
-    # #mi.decodeCoords(41.900207, -87.406008)
+    mi = MapData(Lake.MICHIGAN)
+    print(MapData.RowToSequenceNum(mi.decodeCoords(41.790308, -87.572686)))
+
     # print(mi.data.head(500))
-    ontario = MapData(Lake.ONTARIO)
-    ontario.decodeCoords(43.468444, 79.056817)
+    # ontario = MapData(Lake.ONTARIO)
+    # ontario.decodeCoords(43.468444, 79.056817)
     
     

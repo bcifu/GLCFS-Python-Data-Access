@@ -3,6 +3,7 @@ import urllib3
 import numpy as np
 import pandas as pd
 
+#Note, the I, J for square columns are 1-indexed
 
 class dataFile():   
     """
