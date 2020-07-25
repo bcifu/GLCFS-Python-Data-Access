@@ -37,7 +37,7 @@ class dataFile():
                 break
 
             splitRow = rows[currentRow].split()
-            titles.append(f"{splitRow[0]}-{splitRow[1]}-{splitRow[2]}")
+            titles.append(tuple([splitRow[0], splitRow[1], splitRow[2]])) #titles are year, day, hour
 
             rowsToParse = int(rows[currentRow].split()[-1])
             frame = pd.DataFrame(
@@ -48,7 +48,19 @@ class dataFile():
             currentRow += rowsToParse + 1
         self.dataFrames = pd.Series(data, titles)
 
-    
+    def extractRows(self, rowNum: int):
+        '''Creates a new data table of all the data for one specefic row (sequence number), indexed by the date and time
+
+        Args:
+            rowNum (int): The row/location to use to create the new table
+        '''
+        toReturn = pd.DataFrame()
+        for table, times in zip(self.dataFrames, self.dataFrames.index):
+            # WHY DO I HAVE TO CAST HERE, I DON'T GET IT!!!!
+            row = table.loc[str(rowNum)] #my sense is that this doesn not alter the table in any way, please tell me if this is wrong
+            row.name = times
+            toReturn = toReturn.append(row)
+        return toReturn
 
     def setDataframesTitle(self, titles: List[str], index:str=None):
         """Allows you to change the titles of all the dataframes
@@ -70,7 +82,6 @@ class dataFile():
             for dataFrame in self.dataFrames:
                 dataFrame.rename(columns=titlesDict, inplace=True)
         else:
-            self.dataFrames[0].index.name = "hello there"
             for dataFrame in self.dataFrames:
                 dataFrame.index.name = index
                 dataFrame.rename(columns=titlesDict, inplace=True)
@@ -80,7 +91,14 @@ class dataFile():
 
 
 if __name__ == "__main__":
-    f = dataFile("https://www.glerl.noaa.gov/emf/glcfs/gridded_fields/FCAST/s202020512.0.wav")
-    f.setDataframesTitle(["Waves", "Angle", "frequency"], 4)
+    # f = dataFile(
+    #     "https://www.glerl.noaa.gov/emf/glcfs/gridded_fields/FCAST/m202020612.0.wav")
+    f = dataFile(
+        "https://www.glerl.noaa.gov/emf/glcfs/gridded_fields/FCAST/s202020612.0.wav")
+    f.setDataframesTitle(["Waves", "Angle", "frequency"], "Index")
+    #print(f.dataFrames[0])
+    new = f.extractRows(1)
+    #print(new)
+
     
 
